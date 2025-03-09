@@ -4,3 +4,4 @@ selenium
 webdriver-manager
 bs4
 beautifulsoup4
+gunicorn
