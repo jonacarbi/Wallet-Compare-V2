@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Comparison</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #121212, #1c1c1c);
+            color: #fff;
+        }
+        header {
+            background-color: #1c1c1c;
+            color: #00b894;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        form {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1c1c1c;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #00b894;
+        }
+        label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: block;
+        }
+        input, select, button {
+            width: 97%;
+            padding: 10px;
+            margin: 10px 0 20px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 1em;
+            background-color: #2d3436;
+            color: #fff;
+        }
+        button {
+            background-color: #00b894;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        button:hover {
+            background-color: #00a56b;
+        }
+        .nft-embed {
+            display: block;
+            margin: 30px auto;
+            max-width: 80%;
+            border-radius: 10px;
+            border: 2px solid #00b894;
+        }
+        .comparison-results {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #2d3436;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: #fff;
+            border-left: 5px solid #00b894;
+        }
+        h2 {
+            color: #fff;
+            font-size: 1.5em;
+            border-bottom: 2px solid #00b894;
+            padding-bottom: 5px;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1em;
+        }
+        .footer a {
+            color: #00b894;
+            text-decoration: none;
+        }
+        /* Loading animation styles */
+        .loader {
+            border: 6px solid #1c1c1c;
+            border-top: 6px solid #00b894;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        function showLoading() {
+            // Hide buttons and show loader
+            document.getElementById('compare-button').style.display = 'none';
+            document.getElementById('dupes-button').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Compare Wallets</h1>
+    </header>
+
+    <p style="text-align:center;">
+        <img src="{{ url_for('static', filename='nft_image.gif') }}" alt="NFT Image" class="nft-embed">
+    </p>
+
+    <p style="text-align:center;">
+        <a href="https://tokenscan.io/tx/4e3f1cca29739491c56841c74cfc4c6d101674b3ae93853cf35ad917fde95df9" style="color: #00b894; text-decoration: none;">dispenser</a>
+    </p>
+
+    <form method="POST" action="/" onsubmit="showLoading()">
+        <label for="your_address">Your Wallet Address:</label>
+        <input type="text" id="your_address" name="your_address" value="{{ request.form.your_address }}" required>
+        
+        <label for="their_address">Their Wallet Address:</label>
+        <input type="text" id="their_address" name="their_address" value="{{ request.form.their_address }}" required>
+        
+        <label for="directory">Directory:</label>
+        <select id="directory" name="directory">
+            {% for directory in directories %}
+                <option value="{{ directory }}" {% if directory == selected_directory %}selected{% endif %}>
+                    {{ directory }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" name="compare" id="compare-button">Compare</button>
+        <button type="submit" name="find_dupes" id="dupes-button">Find Dupes</button>
+        <div id="loader" class="loader"></div>
+    </form>
+
+    {% if result %}
+        <div class="comparison-results">
+            <h2>Results</h2>
+            
+            {% if 'your_assets_count' in result %}
+                <p><strong>Your Asset Count:</strong> {{ result.your_assets_count }}</p>
+                <p><strong>Their Asset Count:</strong> {{ result.their_assets_count }}</p>
+
+                <h3>Assets They Have That You Don't</h3>
+                <ul>
+                    {% for asset, quantity in result.unique_assets.items() %}
+                        <li>{{ quantity }} {{ asset }}</li>
+                    {% endfor %}
+                </ul>
+            {% elif 'your_dupes' in result %}
+                <h3>Your Dupes</h3>
+                <ul>
+                    {% for asset, quantity in result.your_dupes.items() %}
+                        <li>{{ quantity }} {{ asset }}</li>
+                    {% endfor %}
+                </ul>
+
+                <h3>Their Dupes</h3>
+                <ul>
+                    {% for asset, quantity in result.their_dupes.items() %}
+                        <li>{{ quantity }} {{ asset }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>
+            Follow me on <a href="https://twitter.com/jonacarbi" target="_blank">Twitter (@jonacarbi)</a> | 
+            Visit my <a href="https://pepe.wtf/artists/Jona-Carbi" target="_blank">Artist Page</a>
+        </p>
+        <p>Buy me a pizza 🍕🔥 If you’ve enjoyed my work, consider sending a slice my way! <br>
+           BTC Address: <strong>bc1q2hdmp0rvk97ka4ae0y48dp8y52yd0nvfatu408</strong>
+        </p>
+    </div>
+</body>
+</html>
