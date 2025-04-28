@@ -118,6 +118,7 @@
             // Hide buttons and show loader
             document.getElementById('compare-button').style.display = 'none';
             document.getElementById('dupes-button').style.display = 'none';
+            document.getElementById('missing-dupes-button').style.display = 'none';
             document.getElementById('loader').style.display = 'block';
         }
     </script>
@@ -153,6 +154,7 @@
 
         <button type="submit" name="compare" id="compare-button">Compare</button>
         <button type="submit" name="find_dupes" id="dupes-button">Find Dupes</button>
+        <button type="submit" name="find_missing_dupes" id="missing-dupes-button">Compare Missing Dupes</button>
         <div id="loader" class="loader"></div>
     </form>
 
@@ -170,7 +172,7 @@
                         <li>{{ quantity }} {{ asset }}</li>
                     {% endfor %}
                 </ul>
-            {% elif 'your_dupes' in result %}
+            {% elif 'your_dupes' in result and 'their_dupes' in result and not ('missing_dupes' in result) %}
                 <h3>Your Dupes</h3>
                 <ul>
                     {% for asset, quantity in result.your_dupes.items() %}
@@ -183,6 +185,27 @@
                     {% for asset, quantity in result.their_dupes.items() %}
                         <li>{{ quantity }} {{ asset }}</li>
                     {% endfor %}
+                </ul>
+            {% elif 'missing_dupes' in result and 'your_missing_dupes' in result %}
+                <h3>Duplicates They Have That You Don't</h3>
+                <ul>
+                    {% if result.missing_dupes %}
+                        {% for asset, quantity in result.missing_dupes.items() %}
+                            <li>{{ quantity }} {{ asset }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>No missing dupes found.</li>
+                    {% endif %}
+                </ul>
+                <h3>Your Duplicates They Don't Have</h3>
+                <ul>
+                    {% if result.your_missing_dupes %}
+                        {% for asset, quantity in result.your_missing_dupes.items() %}
+                            <li>{{ quantity }} {{ asset }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>No missing dupes found.</li>
+                    {% endif %}
                 </ul>
             {% endif %}
         </div>
